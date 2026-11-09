@@ -30,8 +30,8 @@ public final class ServicoCheckout {
         Pagamento pagamento = cobrarOuLiberarReserva(solicitacao, total);
         String numeroPedido = pedidoRepository.salvar(
                 criarPedido(solicitacao, total, pagamento.transacaoId()));
-        notificador.enviarConfirmacao(solicitacao.email(), numeroPedido, total);
-        return new ResultadoCheckout(numeroPedido, total, true);
+        boolean notificacaoEnviada = notificar(solicitacao.email(), numeroPedido, total);
+        return new ResultadoCheckout(numeroPedido, total, notificacaoEnviada);
     }
 
     /**
@@ -51,6 +51,19 @@ public final class ServicoCheckout {
             throw new PagamentoRecusadoException();
         }
         return pagamento;
+    }
+
+    /**
+     * A notificação é efeito secundário (R7): sua falha não desfaz a compra.
+     * Só a falha de notificação prevista no contrato é absorvida.
+     */
+    private boolean notificar(String email, String numeroPedido, BigDecimal total) {
+        try {
+            notificador.enviarConfirmacao(email, numeroPedido, total);
+            return true;
+        } catch (FalhaNotificacaoException falha) {
+            return false;
+        }
     }
 
     private void liberarReserva(SolicitacaoCheckout solicitacao) {

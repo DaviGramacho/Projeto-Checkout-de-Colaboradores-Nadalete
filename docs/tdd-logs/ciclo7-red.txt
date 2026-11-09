@@ -1,0 +1,4 @@
+[ERROR] Tests run: 22, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.388 s <<< FAILURE! -- in br.edu.checkout.ServicoCheckoutTest
+br.edu.checkout.ServicoCheckoutTest.deveManterCompraQuandoNotificacaoFalha -- Time elapsed: 0.019 s <<< ERROR!
+br.edu.checkout.FalhaNotificacaoException: SMTP indisponível
+	at br.edu.checkout.ServicoCheckout.finalizar(ServicoCheckout.java:33)
