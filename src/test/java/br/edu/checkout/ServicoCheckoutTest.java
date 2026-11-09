@@ -128,4 +128,33 @@ class ServicoCheckoutTest {
         ordem.verify(notificador, times(1)).enviarConfirmacao(EMAIL, "PED-42", total);
         verify(estoqueGateway, never()).liberar(anyString(), anyInt());
     }
+
+    @Test
+    void deveAceitarQuantidadeMinimaMantendoPrecoComoTotal() {
+        BigDecimal preco = new BigDecimal("19.90");
+        when(estoqueGateway.reservar(SKU, 1)).thenReturn(true);
+        when(pagamentoGateway.cobrar(CLIENTE, preco)).thenReturn(new Pagamento(true, "TX-1"));
+        when(pedidoRepository.salvar(new PedidoConfirmado(CLIENTE, EMAIL, SKU, 1, preco, "TX-1")))
+                .thenReturn("PED-1");
+
+        ResultadoCheckout resultado = servico.finalizar(solicitacao(1, "19.90"));
+
+        assertEquals(new ResultadoCheckout("PED-1", preco, true), resultado);
+    }
+
+    @Test
+    void deveCalcularTotalSemArredondarEEnviarEsseTotalAoPagamento() {
+        BigDecimal esperado = new BigDecimal("0.015");
+        when(estoqueGateway.reservar(SKU, 3)).thenReturn(true);
+        when(pagamentoGateway.cobrar(CLIENTE, esperado)).thenReturn(new Pagamento(true, "TX-2"));
+        when(pedidoRepository.salvar(new PedidoConfirmado(CLIENTE, EMAIL, SKU, 3, esperado, "TX-2")))
+                .thenReturn("PED-2");
+
+        ResultadoCheckout resultado = servico.finalizar(solicitacao(3, "0.005"));
+
+        // equals exige valor e escala iguais: 0.015 (escala 3), nunca 0.02 ou 0.01
+        assertEquals(esperado, resultado.total());
+        verify(pagamentoGateway).cobrar(CLIENTE, esperado);
+        verify(notificador).enviarConfirmacao(EMAIL, "PED-2", esperado);
+    }
 }
