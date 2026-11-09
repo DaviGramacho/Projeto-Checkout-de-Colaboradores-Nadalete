@@ -1,0 +1,15 @@
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.026 s <<< FAILURE! -- in br.edu.checkout.ServicoCheckoutTest
+[ERROR] br.edu.checkout.ServicoCheckoutTest.deveRejeitarSolicitacaoNulaSemConsultarColaboradores -- Time elapsed: 0.985 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <java.lang.IllegalArgumentException> but was: <java.lang.UnsupportedOperationException>
+Caused by: java.lang.UnsupportedOperationException: Implemente por TDD
+[ERROR] Failures: 
+[ERROR]   ServicoCheckoutTest.deveRejeitarSolicitacaoNulaSemConsultarColaboradores:41 Unexpected exception type thrown, expected: <java.lang.IllegalArgumentException> but was: <java.lang.UnsupportedOperationException>
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.3:test (default-test) on project checkout-alunos: There are test failures.
+[ERROR] 
+[ERROR] See C:\Users\davi\Desktop\projeto-alunos\projeto-alunos\target\surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.

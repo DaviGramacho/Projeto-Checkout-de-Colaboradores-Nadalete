@@ -21,7 +21,9 @@ public final class ServicoCheckout {
     }
 
     public ResultadoCheckout finalizar(SolicitacaoCheckout solicitacao) {
-        // Desenvolva este método em ciclos Red–Green–Refactor.
+        if (solicitacao == null) {
+            throw new IllegalArgumentException("Solicitação obrigatória");
+        }
         throw new UnsupportedOperationException("Implemente por TDD");
     }
 }
