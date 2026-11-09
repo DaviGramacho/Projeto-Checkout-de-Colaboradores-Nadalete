@@ -23,14 +23,29 @@ public final class ServicoCheckout {
 
     public ResultadoCheckout finalizar(SolicitacaoCheckout solicitacao) {
         validar(solicitacao);
-        BigDecimal total = solicitacao.precoUnitario().multiply(BigDecimal.valueOf(solicitacao.quantidade()));
+        BigDecimal total = calcularTotal(solicitacao);
         estoqueGateway.reservar(solicitacao.sku(), solicitacao.quantidade());
         Pagamento pagamento = pagamentoGateway.cobrar(solicitacao.clienteId(), total);
-        String numeroPedido = pedidoRepository.salvar(new PedidoConfirmado(
-                solicitacao.clienteId(), solicitacao.email(), solicitacao.sku(),
-                solicitacao.quantidade(), total, pagamento.transacaoId()));
+        String numeroPedido = pedidoRepository.salvar(
+                criarPedido(solicitacao, total, pagamento.transacaoId()));
         notificador.enviarConfirmacao(solicitacao.email(), numeroPedido, total);
         return new ResultadoCheckout(numeroPedido, total, true);
+    }
+
+    private static BigDecimal calcularTotal(SolicitacaoCheckout solicitacao) {
+        // Multiplicação exata: sem double e sem arredondamento (R2).
+        return solicitacao.precoUnitario().multiply(BigDecimal.valueOf(solicitacao.quantidade()));
+    }
+
+    private static PedidoConfirmado criarPedido(
+            SolicitacaoCheckout solicitacao, BigDecimal total, String transacaoId) {
+        return new PedidoConfirmado(
+                solicitacao.clienteId(),
+                solicitacao.email(),
+                solicitacao.sku(),
+                solicitacao.quantidade(),
+                total,
+                transacaoId);
     }
 
     private static void validar(SolicitacaoCheckout solicitacao) {
