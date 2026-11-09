@@ -3,6 +3,7 @@ package br.edu.checkout;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.inOrder;
@@ -168,5 +169,22 @@ class ServicoCheckoutTest {
         verify(estoqueGateway, times(1)).reservar(SKU, 2);
         verify(estoqueGateway, never()).liberar(anyString(), anyInt());
         verifyNoInteractions(pagamentoGateway, pedidoRepository, notificador);
+    }
+
+    @Test
+    void deveLiberarReservaAposCobrancaRecusadaSemRegistrarNemNotificar() {
+        BigDecimal total = new BigDecimal("20.00");
+        when(estoqueGateway.reservar(SKU, 2)).thenReturn(true);
+        when(pagamentoGateway.cobrar(CLIENTE, total)).thenReturn(new Pagamento(false, null));
+
+        assertThrows(PagamentoRecusadoException.class,
+                () -> servico.finalizar(solicitacao(2, "10.00")));
+
+        InOrder ordem = inOrder(estoqueGateway, pagamentoGateway);
+        ordem.verify(estoqueGateway).reservar(SKU, 2);
+        ordem.verify(pagamentoGateway, times(1)).cobrar(CLIENTE, total);
+        ordem.verify(estoqueGateway, times(1)).liberar(SKU, 2);
+        verify(pedidoRepository, never()).salvar(any(PedidoConfirmado.class));
+        verifyNoInteractions(notificador);
     }
 }
