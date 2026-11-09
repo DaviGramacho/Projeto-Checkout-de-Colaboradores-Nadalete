@@ -105,8 +105,7 @@ class ServicoCheckoutTest {
         BigDecimal total = new BigDecimal("59.70");
         when(estoqueGateway.reservar(SKU, 3)).thenReturn(true);
         when(pagamentoGateway.cobrar(CLIENTE, total)).thenReturn(new Pagamento(true, "TX-9"));
-        ArgumentCaptor<PedidoConfirmado> pedidoCaptor = ArgumentCaptor.forClass(PedidoConfirmado.class);
-        when(pedidoRepository.salvar(pedidoCaptor.capture())).thenReturn("PED-42");
+        when(pedidoRepository.salvar(any(PedidoConfirmado.class))).thenReturn("PED-42");
 
         ResultadoCheckout resultado = servico.finalizar(solicitacao(3, "19.90"));
 
@@ -114,6 +113,15 @@ class ServicoCheckoutTest {
         assertEquals("PED-42", resultado.numeroPedido());
         assertEquals(total, resultado.total());
         assertTrue(resultado.notificacaoEnviada());
+
+        // Interação: ordem exigida pelo contrato, cada efeito uma vez
+        ArgumentCaptor<PedidoConfirmado> pedidoCaptor = ArgumentCaptor.forClass(PedidoConfirmado.class);
+        InOrder ordem = inOrder(estoqueGateway, pagamentoGateway, pedidoRepository, notificador);
+        ordem.verify(estoqueGateway, times(1)).reservar(SKU, 3);
+        ordem.verify(pagamentoGateway, times(1)).cobrar(CLIENTE, total);
+        ordem.verify(pedidoRepository, times(1)).salvar(pedidoCaptor.capture());
+        ordem.verify(notificador, times(1)).enviarConfirmacao(EMAIL, "PED-42", total);
+        verify(estoqueGateway, never()).liberar(anyString(), anyInt());
 
         // Captor: o pedido montado com os seis campos corretos
         PedidoConfirmado pedido = pedidoCaptor.getValue();
@@ -123,14 +131,6 @@ class ServicoCheckoutTest {
         assertEquals(3, pedido.quantidade());
         assertEquals(total, pedido.total());
         assertEquals("TX-9", pedido.transacaoId());
-
-        // Interação: ordem exigida pelo contrato, cada efeito uma vez
-        InOrder ordem = inOrder(estoqueGateway, pagamentoGateway, pedidoRepository, notificador);
-        ordem.verify(estoqueGateway, times(1)).reservar(SKU, 3);
-        ordem.verify(pagamentoGateway, times(1)).cobrar(CLIENTE, total);
-        ordem.verify(pedidoRepository, times(1)).salvar(pedido);
-        ordem.verify(notificador, times(1)).enviarConfirmacao(EMAIL, "PED-42", total);
-        verify(estoqueGateway, never()).liberar(anyString(), anyInt());
     }
 
     @Test
