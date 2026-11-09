@@ -157,4 +157,16 @@ class ServicoCheckoutTest {
         verify(pagamentoGateway).cobrar(CLIENTE, esperado);
         verify(notificador).enviarConfirmacao(EMAIL, "PED-2", esperado);
     }
+
+    @Test
+    void deveFalharSemEstoqueSemCobrarRegistrarNotificarNemLiberar() {
+        when(estoqueGateway.reservar(SKU, 2)).thenReturn(false);
+
+        assertThrows(EstoqueInsuficienteException.class,
+                () -> servico.finalizar(solicitacao(2, "10.00")));
+
+        verify(estoqueGateway, times(1)).reservar(SKU, 2);
+        verify(estoqueGateway, never()).liberar(anyString(), anyInt());
+        verifyNoInteractions(pagamentoGateway, pedidoRepository, notificador);
+    }
 }
