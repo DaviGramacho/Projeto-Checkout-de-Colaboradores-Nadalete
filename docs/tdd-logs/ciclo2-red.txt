@@ -1,0 +1,8 @@
+[ERROR] Tests run: 15, Failures: 14, Errors: 0, Skipped: 0, Time elapsed: 1.212 s <<< FAILURE! -- in br.edu.checkout.ServicoCheckoutTest
+[ERROR] br.edu.checkout.ServicoCheckoutTest.deveRejeitarSolicitacaoInvalidaSemConsultarColaboradores(String, SolicitacaoCheckout)[1] -- Time elapsed: 0.950 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <java.lang.IllegalArgumentException> but was: <java.lang.UnsupportedOperationException>
+[ERROR] br.edu.checkout.ServicoCheckoutTest.deveRejeitarSolicitacaoInvalidaSemConsultarColaboradores(String, SolicitacaoCheckout)[2] -- Time elapsed: 0.007 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <java.lang.IllegalArgumentException> but was: <java.lang.UnsupportedOperationException>
+[ERROR] br.edu.checkout.ServicoCheckoutTest.deveRejeitarSolicitacaoInvalidaSemConsultarColaboradores(String, SolicitacaoCheckout)[3] -- Time elapsed: 0.007 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown, expected: <java.lang.IllegalArgumentException> but was: <java.lang.UnsupportedOperationException>
+[ERROR] br.edu.checkout.ServicoCheckoutTest.deveRejeitarSolicitacaoInvalidaSemConsultarColaboradores(String, SolicitacaoCheckout)[4] -- Time elapsed: 0.004 s <<< FAILURE!
