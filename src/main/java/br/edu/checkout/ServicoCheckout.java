@@ -21,17 +21,28 @@ public final class ServicoCheckout {
     }
 
     public ResultadoCheckout finalizar(SolicitacaoCheckout solicitacao) {
+        validar(solicitacao);
+        throw new UnsupportedOperationException("Implemente por TDD");
+    }
+
+    private static void validar(SolicitacaoCheckout solicitacao) {
         if (solicitacao == null) {
             throw new IllegalArgumentException("Solicitação obrigatória");
         }
-        if (solicitacao.clienteId() == null || solicitacao.clienteId().isBlank()
-                || solicitacao.email() == null || solicitacao.email().isBlank()
-                || solicitacao.sku() == null || solicitacao.sku().isBlank()
-                || solicitacao.quantidade() <= 0
-                || solicitacao.precoUnitario() == null
-                || solicitacao.precoUnitario().signum() <= 0) {
-            throw new IllegalArgumentException("Solicitação inválida");
+        exigirTexto(solicitacao.clienteId(), "clienteId");
+        exigirTexto(solicitacao.email(), "email");
+        exigirTexto(solicitacao.sku(), "sku");
+        if (solicitacao.quantidade() <= 0) {
+            throw new IllegalArgumentException("Quantidade deve ser positiva");
         }
-        throw new UnsupportedOperationException("Implemente por TDD");
+        if (solicitacao.precoUnitario() == null || solicitacao.precoUnitario().signum() <= 0) {
+            throw new IllegalArgumentException("Preço unitário deve ser positivo");
+        }
+    }
+
+    private static void exigirTexto(String valor, String campo) {
+        if (valor == null || valor.isBlank()) {
+            throw new IllegalArgumentException(campo + " obrigatório");
+        }
     }
 }
