@@ -1,12 +1,14 @@
 package br.edu.checkout;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -205,5 +207,26 @@ class ServicoCheckoutTest {
         ordem.verify(pagamentoGateway, times(1)).cobrar(CLIENTE, total);
         ordem.verify(estoqueGateway, times(1)).liberar(SKU, 2);
         verifyNoInteractions(pedidoRepository, notificador);
+    }
+
+    @Test
+    void deveManterCompraQuandoNotificacaoFalha() {
+        BigDecimal total = new BigDecimal("20.00");
+        when(estoqueGateway.reservar(SKU, 2)).thenReturn(true);
+        when(pagamentoGateway.cobrar(CLIENTE, total)).thenReturn(new Pagamento(true, "TX-7"));
+        when(pedidoRepository.salvar(new PedidoConfirmado(CLIENTE, EMAIL, SKU, 2, total, "TX-7")))
+                .thenReturn("PED-7");
+        doThrow(new FalhaNotificacaoException("SMTP indisponível"))
+                .when(notificador).enviarConfirmacao(EMAIL, "PED-7", total);
+
+        ResultadoCheckout resultado = servico.finalizar(solicitacao(2, "10.00"));
+
+        assertEquals("PED-7", resultado.numeroPedido());
+        assertEquals(total, resultado.total());
+        assertFalse(resultado.notificacaoEnviada());
+        verify(pagamentoGateway, times(1)).cobrar(any(String.class), any(BigDecimal.class));
+        verify(pedidoRepository, times(1)).salvar(any(PedidoConfirmado.class));
+        verify(notificador, times(1)).enviarConfirmacao(EMAIL, "PED-7", total);
+        verify(estoqueGateway, never()).liberar(anyString(), anyInt());
     }
 }
