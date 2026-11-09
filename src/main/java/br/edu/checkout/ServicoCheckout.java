@@ -27,7 +27,13 @@ public final class ServicoCheckout {
         if (!estoqueGateway.reservar(solicitacao.sku(), solicitacao.quantidade())) {
             throw new EstoqueInsuficienteException();
         }
-        Pagamento pagamento = pagamentoGateway.cobrar(solicitacao.clienteId(), total);
+        Pagamento pagamento;
+        try {
+            pagamento = pagamentoGateway.cobrar(solicitacao.clienteId(), total);
+        } catch (FalhaPagamentoException falha) {
+            estoqueGateway.liberar(solicitacao.sku(), solicitacao.quantidade());
+            throw falha;
+        }
         if (!pagamento.aprovado()) {
             estoqueGateway.liberar(solicitacao.sku(), solicitacao.quantidade());
             throw new PagamentoRecusadoException();
