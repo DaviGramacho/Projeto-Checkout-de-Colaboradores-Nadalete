@@ -1,7 +1,16 @@
 package br.edu.checkout;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.stream.Stream;
@@ -12,6 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -75,5 +86,46 @@ class ServicoCheckoutTest {
         assertThrows(IllegalArgumentException.class, () -> servico.finalizar(invalida));
         verifyNoInteractions(
                 estoqueGateway, pagamentoGateway, pedidoRepository, notificador);
+    }
+
+    private static final String CLIENTE = "C1";
+    private static final String EMAIL = "ana@ex.com";
+    private static final String SKU = "SKU-1";
+
+    private static SolicitacaoCheckout solicitacao(int quantidade, String precoUnitario) {
+        return new SolicitacaoCheckout(CLIENTE, EMAIL, SKU, quantidade, new BigDecimal(precoUnitario));
+    }
+
+    @Test
+    void deveConcluirCompraAprovadaNaOrdemReservarCobrarSalvarNotificar() {
+        BigDecimal total = new BigDecimal("59.70");
+        when(estoqueGateway.reservar(SKU, 3)).thenReturn(true);
+        when(pagamentoGateway.cobrar(CLIENTE, total)).thenReturn(new Pagamento(true, "TX-9"));
+        ArgumentCaptor<PedidoConfirmado> pedidoCaptor = ArgumentCaptor.forClass(PedidoConfirmado.class);
+        when(pedidoRepository.salvar(pedidoCaptor.capture())).thenReturn("PED-42");
+
+        ResultadoCheckout resultado = servico.finalizar(solicitacao(3, "19.90"));
+
+        // Estado: o resultado devolvido ao chamador
+        assertEquals("PED-42", resultado.numeroPedido());
+        assertEquals(total, resultado.total());
+        assertTrue(resultado.notificacaoEnviada());
+
+        // Captor: o pedido montado com os seis campos corretos
+        PedidoConfirmado pedido = pedidoCaptor.getValue();
+        assertEquals(CLIENTE, pedido.clienteId());
+        assertEquals(EMAIL, pedido.email());
+        assertEquals(SKU, pedido.sku());
+        assertEquals(3, pedido.quantidade());
+        assertEquals(total, pedido.total());
+        assertEquals("TX-9", pedido.transacaoId());
+
+        // Interação: ordem exigida pelo contrato, cada efeito uma vez
+        InOrder ordem = inOrder(estoqueGateway, pagamentoGateway, pedidoRepository, notificador);
+        ordem.verify(estoqueGateway, times(1)).reservar(SKU, 3);
+        ordem.verify(pagamentoGateway, times(1)).cobrar(CLIENTE, total);
+        ordem.verify(pedidoRepository, times(1)).salvar(pedido);
+        ordem.verify(notificador, times(1)).enviarConfirmacao(EMAIL, "PED-42", total);
+        verify(estoqueGateway, never()).liberar(anyString(), anyInt());
     }
 }
