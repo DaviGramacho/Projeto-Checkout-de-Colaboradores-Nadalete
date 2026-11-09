@@ -1,0 +1,4 @@
+[ERROR] Tests run: 16, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.231 s <<< FAILURE! -- in br.edu.checkout.ServicoCheckoutTest
+java.lang.UnsupportedOperationException: Implemente por TDD
+[ERROR] Tests run: 16, Failures: 0, Errors: 1, Skipped: 0
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

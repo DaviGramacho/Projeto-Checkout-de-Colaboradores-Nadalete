@@ -1,5 +1,6 @@
 package br.edu.checkout;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 public final class ServicoCheckout {
@@ -22,7 +23,14 @@ public final class ServicoCheckout {
 
     public ResultadoCheckout finalizar(SolicitacaoCheckout solicitacao) {
         validar(solicitacao);
-        throw new UnsupportedOperationException("Implemente por TDD");
+        BigDecimal total = solicitacao.precoUnitario().multiply(BigDecimal.valueOf(solicitacao.quantidade()));
+        estoqueGateway.reservar(solicitacao.sku(), solicitacao.quantidade());
+        Pagamento pagamento = pagamentoGateway.cobrar(solicitacao.clienteId(), total);
+        String numeroPedido = pedidoRepository.salvar(new PedidoConfirmado(
+                solicitacao.clienteId(), solicitacao.email(), solicitacao.sku(),
+                solicitacao.quantidade(), total, pagamento.transacaoId()));
+        notificador.enviarConfirmacao(solicitacao.email(), numeroPedido, total);
+        return new ResultadoCheckout(numeroPedido, total, true);
     }
 
     private static void validar(SolicitacaoCheckout solicitacao) {
