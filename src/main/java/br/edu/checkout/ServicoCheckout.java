@@ -24,7 +24,9 @@ public final class ServicoCheckout {
     public ResultadoCheckout finalizar(SolicitacaoCheckout solicitacao) {
         validar(solicitacao);
         BigDecimal total = calcularTotal(solicitacao);
-        estoqueGateway.reservar(solicitacao.sku(), solicitacao.quantidade());
+        if (!estoqueGateway.reservar(solicitacao.sku(), solicitacao.quantidade())) {
+            throw new EstoqueInsuficienteException();
+        }
         Pagamento pagamento = pagamentoGateway.cobrar(solicitacao.clienteId(), total);
         String numeroPedido = pedidoRepository.salvar(
                 criarPedido(solicitacao, total, pagamento.transacaoId()));
