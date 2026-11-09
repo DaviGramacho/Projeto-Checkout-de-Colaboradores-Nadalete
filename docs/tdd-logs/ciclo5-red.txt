@@ -1,0 +1,8 @@
+[ERROR] Tests run: 20, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.278 s <<< FAILURE! -- in br.edu.checkout.ServicoCheckoutTest
+[ERROR] br.edu.checkout.ServicoCheckoutTest.deveLiberarReservaAposCobrancaRecusadaSemRegistrarNemNotificar -- Time elapsed: 0.014 s <<< FAILURE!
+[ERROR] Tests run: 20, Failures: 1, Errors: 0, Skipped: 0
+br.edu.checkout.ServicoCheckoutTest.deveLiberarReservaAposCobrancaRecusadaSemRegistrarNemNotificar -- Time elapsed: 0.014 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: Expected br.edu.checkout.PagamentoRecusadoException to be thrown, but nothing was thrown.
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at br.edu.checkout.ServicoCheckoutTest.deveLiberarReservaAposCobrancaRecusadaSemRegistrarNemNotificar(ServicoCheckoutTest.java:180)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)

@@ -28,6 +28,10 @@ public final class ServicoCheckout {
             throw new EstoqueInsuficienteException();
         }
         Pagamento pagamento = pagamentoGateway.cobrar(solicitacao.clienteId(), total);
+        if (!pagamento.aprovado()) {
+            estoqueGateway.liberar(solicitacao.sku(), solicitacao.quantidade());
+            throw new PagamentoRecusadoException();
+        }
         String numeroPedido = pedidoRepository.salvar(
                 criarPedido(solicitacao, total, pagamento.transacaoId()));
         notificador.enviarConfirmacao(solicitacao.email(), numeroPedido, total);
